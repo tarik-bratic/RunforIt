@@ -8,37 +8,34 @@
 import Foundation
 import CoreLocation
 
-class LocationManager: NSObject, CLLocationManagerDelegate {
-    private let manager = CLLocationManager()
-    private var lastLocation: CLLocation?
-    var onUpdate: ((CLLocation) -> Void)?
-    
-    @Published var distance: Double = 0.0
-    @Published var speed: Double = 0.0
+class LocationManager: NSObject, ObservableObject, CLLocationManagerDelegate {
+    private let locationManager = CLLocationManager()
+    @Published var routeCoordinates: [CLLocationCoordinate2D] = []
+    var onLocationUpdate: ((CLLocation) -> Void)?
     
     override init() {
         super.init()
-        manager.delegate = self
-        manager.desiredAccuracy = kCLLocationAccuracyBest
-        manager.requestWhenInUseAuthorization()
+        locationManager.delegate = self
+        locationManager.desiredAccuracy = kCLLocationAccuracyBest
+        locationManager.requestWhenInUseAuthorization()
     }
     
-    func startTracking(onUpdate: @escaping (CLLocation) -> Void) {
-        self.onUpdate = onUpdate
-        manager.startUpdatingLocation()
+    func startTracking() {
+        routeCoordinates = []
+        //self.onUpdate = onUpdate
+        locationManager.startUpdatingLocation()
     }
     
     func stopTracking() {
-        manager.stopUpdatingLocation()
+        locationManager.stopUpdatingLocation()
     }
     
     func locationManager(_ manager: CLLocationManager, didUpdateLocations locations: [CLLocation]) {
-            guard let newLocation = locations.last else { return }
-            if let last = lastLocation {
-                distance += newLocation.distance(from: last)
-                speed = newLocation.speed > 0 ? newLocation.speed : 0.0
-            }
-            lastLocation = newLocation
-            onUpdate?(newLocation)
+        guard let newLocation = locations.last else { return }
+        onLocationUpdate?(newLocation)
+        
+        DispatchQueue.main.async {
+            self.routeCoordinates.append(newLocation.coordinate)
         }
+    }
 }
