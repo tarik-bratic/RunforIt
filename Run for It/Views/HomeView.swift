@@ -9,6 +9,7 @@ import SwiftUI
 
 struct HomeView: View {
     @StateObject var viewModel = RunViewModel()
+    @State private var showRunningStats = false
     
     var body: some View {
         TabView {
@@ -30,7 +31,8 @@ struct HomeView: View {
                 .padding()
                 
                 Button(action: {
-                    viewModel.stopRun()
+                    showRunningStats = true
+                    viewModel.startRun()
                 }) {
                     Text("Start")
                         .font(.headline)
@@ -41,6 +43,9 @@ struct HomeView: View {
                         .shadow(radius: 5)
                 }
                 .padding(.top, 20)
+                .fullScreenCover(isPresented: $showRunningStats) {
+                    RunningStatView(viewModel: viewModel)
+                }
                 
                 Spacer()
             }
