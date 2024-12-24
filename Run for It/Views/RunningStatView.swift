@@ -105,9 +105,7 @@ struct RunningStatView: View {
             .background(Color(.systemGray6).ignoresSafeArea())
             
             // Kartvy
-            CustomMapView(
-                routeCoordinates: $viewModel.routeCoordinates, region: $viewModel.region
-            )
+            MapView(viewModel: RunViewModel())
             .edgesIgnoringSafeArea(.all)
         }
         .tabViewStyle(PageTabViewStyle(indexDisplayMode: .always))

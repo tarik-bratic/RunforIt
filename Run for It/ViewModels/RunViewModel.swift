@@ -10,36 +10,72 @@ import Combine
 import CoreLocation
 import MapKit
 
-class RunViewModel: ObservableObject {
+class RunViewModel: NSObject, ObservableObject, CLLocationManagerDelegate {
     @Published var distance: String = "0.00 km"
     @Published var speed: String = "0:00" //tempo i formatet min/km
     @Published var duration: String = "00:00" //tiden i formatet mm/ss
     @Published var routeCoordinates: [CLLocationCoordinate2D] = []
     @Published var region: MKCoordinateRegion = MKCoordinateRegion(
-        center: CLLocationCoordinate2D(latitude: 40.7127, longitude: -73.998),
+        center: CLLocationCoordinate2D(latitude: 37.331516, longitude: -121.891054),
         span: MKCoordinateSpan(latitudeDelta: 0.01, longitudeDelta: 0.01)
     )
+    @Published var locationAccessDenied: Bool = false
     
-    private var locationManager = LocationManager()
+    private var locationManager: CLLocationManager?
     private var timer: Timer?
     private var elapsedTime: TimeInterval = 0.0
     private var totalDistancee: Double = 0.0
     private var isPaused = false
     
-    init() {
-        locationManager.onLocationUpdate = { [weak self] location in
-            self?.updateLocation(location)
+    override init() {
+            super.init()
+            configureLocationManager()
         }
+    
+    private func configureLocationManager() {
+        locationManager = CLLocationManager()
+        locationManager?.delegate = self
+        locationManager?.desiredAccuracy = kCLLocationAccuracyBest
+        checkLocationAuthorization()
     }
+    
+    func checkIfLocationServicesEnabled() {
+            if CLLocationManager.locationServicesEnabled() {
+                locationManager = CLLocationManager()
+                locationManager?.delegate = self
+                locationManager?.desiredAccuracy = kCLLocationAccuracyBest
+            } else {
+                print("Location services are disabled. Please enable them.")
+            }
+        }
+    
+    private func checkLocationAuthorization() {
+            guard let locationManager else { return }
+
+            switch locationManager.authorizationStatus {
+            case .notDetermined:
+                locationManager.requestWhenInUseAuthorization()
+            case .restricted, .denied:
+                locationAccessDenied = true
+            case .authorizedAlways, .authorizedWhenInUse:
+                locationAccessDenied = false
+            @unknown default:
+                break
+            }
+        }
+    
+    func locationManagerDidChangeAuthorization(_ manager: CLLocationManager) {
+            checkLocationAuthorization()
+        }
     
     func startRun() {
         if isPaused {
             isPaused = false
             startTimer()
-            locationManager.startTracking()
+            locationManager?.startUpdatingLocation()
         } else {
             resetRun()
-            locationManager.stopTracking()
+            locationManager?.startUpdatingLocation()
             startTimer()
         }
     }
@@ -47,11 +83,11 @@ class RunViewModel: ObservableObject {
     func pauseRun() {
         isPaused = true
         stopTimer()
-        locationManager.stopTracking()
+        locationManager?.stopUpdatingLocation()
     }
     
     func stopRun() {
-        locationManager.stopTracking()
+        locationManager?.stopUpdatingLocation()
         stopTimer()
         isPaused = false
     }
@@ -114,4 +150,5 @@ class RunViewModel: ObservableObject {
         let seconds = Int(paceInSeconds) % 60
         self.speed = String(format: "%d:%02d", minutes, seconds)
     }
+    
 }
