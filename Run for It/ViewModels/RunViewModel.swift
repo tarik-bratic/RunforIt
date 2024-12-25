@@ -14,23 +14,41 @@ class RunViewModel: NSObject, ObservableObject, CLLocationManagerDelegate {
     @Published var distance: String = "0.00 km"
     @Published var speed: String = "0:00" //tempo i formatet min/km
     @Published var duration: String = "00:00" //tiden i formatet mm/ss
+    
+    @Published var locationAccessDenied: Bool = false
     @Published var routeCoordinates: [CLLocationCoordinate2D] = []
     @Published var region: MKCoordinateRegion = MKCoordinateRegion(
         center: CLLocationCoordinate2D(latitude: 37.331516, longitude: -121.891054),
         span: MKCoordinateSpan(latitudeDelta: 0.01, longitudeDelta: 0.01)
     )
-    @Published var locationAccessDenied: Bool = false
     
     private var locationManager: CLLocationManager?
+    
     private var timer: Timer?
     private var elapsedTime: TimeInterval = 0.0
     private var totalDistancee: Double = 0.0
     private var isPaused = false
     
     override init() {
-            super.init()
-            configureLocationManager()
+        super.init()
+        configureLocationManager()
+    }
+    
+    func simulateMovement() {
+        let testCoordinates = [
+            CLLocationCoordinate2D(latitude: 59.27158, longitude: 17.98855),
+                    CLLocationCoordinate2D(latitude: 59.27200, longitude: 17.98890),
+                    CLLocationCoordinate2D(latitude: 59.27250, longitude: 17.98920),
+                    CLLocationCoordinate2D(latitude: 59.27300, longitude: 17.98950),
+                    CLLocationCoordinate2D(latitude: 59.27350, longitude: 17.98980)
+        ]
+        
+        for coordinate in testCoordinates {
+            let location = CLLocation(latitude: coordinate.latitude, longitude: coordinate.longitude)
+            updateLocation(location)
         }
+    }
+
     
     private func configureLocationManager() {
         locationManager = CLLocationManager()
@@ -40,45 +58,74 @@ class RunViewModel: NSObject, ObservableObject, CLLocationManagerDelegate {
     }
     
     func checkIfLocationServicesEnabled() {
-            if CLLocationManager.locationServicesEnabled() {
-                locationManager = CLLocationManager()
-                locationManager?.delegate = self
-                locationManager?.desiredAccuracy = kCLLocationAccuracyBest
-            } else {
-                print("Location services are disabled. Please enable them.")
-            }
+        guard CLLocationManager.locationServicesEnabled() else {
+            print("Location services are disabled.")
+            return
         }
-    
-    private func checkLocationAuthorization() {
-            guard let locationManager else { return }
+        
+        if locationManager == nil {
+            locationManager = CLLocationManager()
+            locationManager?.delegate = self
+            locationManager?.desiredAccuracy = kCLLocationAccuracyBest
+        }
 
-            switch locationManager.authorizationStatus {
-            case .notDetermined:
-                locationManager.requestWhenInUseAuthorization()
-            case .restricted, .denied:
-                locationAccessDenied = true
-            case .authorizedAlways, .authorizedWhenInUse:
-                locationAccessDenied = false
-            @unknown default:
-                break
-            }
-        }
-    
-    func locationManagerDidChangeAuthorization(_ manager: CLLocationManager) {
-            checkLocationAuthorization()
-        }
-    
-    func startRun() {
-        if isPaused {
-            isPaused = false
-            startTimer()
-            locationManager?.startUpdatingLocation()
-        } else {
-            resetRun()
-            locationManager?.startUpdatingLocation()
-            startTimer()
+        DispatchQueue.main.async {
+            self.locationManager?.requestWhenInUseAuthorization()
         }
     }
+    
+    func locationManagerDidChangeAuthorization(_ manager: CLLocationManager) {
+        DispatchQueue.global(qos: .userInitiated).async { [weak self] in
+            guard let self = self else { return }
+                
+            DispatchQueue.main.async {
+                self.checkLocationAuthorization()
+            }
+        }
+    }
+    
+    private func checkLocationAuthorization() {
+        guard let locationManager else { return }
+        
+        let status = locationManager.authorizationStatus
+        switch status {
+        case .notDetermined:
+            locationManager.requestWhenInUseAuthorization()
+        case .restricted:
+            DispatchQueue.main.async {
+                self.locationAccessDenied = true
+                print("Your location is restricted likely due to parental control.")
+            }
+        case .denied:
+            DispatchQueue.main.async {
+                self.locationAccessDenied = true
+                print("You have denied location services.")
+            }
+        case .authorizedAlways, .authorizedWhenInUse:
+            DispatchQueue.global(qos: .background).async { [weak self] in
+                guard let self = self, let location = locationManager.location else { return }
+                let region = MKCoordinateRegion(
+                    center: location.coordinate,
+                    span: MKCoordinateSpan(latitudeDelta: 0.01, longitudeDelta: 0.01)
+                )
+                DispatchQueue.main.async {
+                    self.region = region
+                }
+            }
+        @unknown default:
+            print("An unknown authorization status occurred.")
+        }
+    }
+    
+    func startRun() {
+        if !isPaused {
+            resetRun()
+        }
+        isPaused = false
+        startTimer()
+        locationManager?.startUpdatingLocation()
+    }
+
     
     func pauseRun() {
         isPaused = true
@@ -107,20 +154,31 @@ class RunViewModel: NSObject, ObservableObject, CLLocationManagerDelegate {
                 let lastLocation = CLLocation(latitude: lastCoordinates.latitude, longitude: lastCoordinates.longitude)
                 let distanceDelta = location.distance(from: lastLocation)
                 
+                print("Avstånd från senaste punkt: \(distanceDelta) meter") // Debugutskrift
+
+                
                 if distanceDelta > 1 {
                     self.totalDistancee += distanceDelta
                     self.distance = String(format: "%.2f km", self.totalDistancee / 1000)
                     self.updateSpeed()
+                    
+                    print("Uppdaterad distans: \(self.distance)")
                 }
             }
-            
+
             self.routeCoordinates.append(location.coordinate)
-            self.region.center = location.coordinate
+            if self.region.center.latitude != location.coordinate.latitude ||
+                self.region.center.longitude != location.coordinate.longitude {
+                self.region.center = location.coordinate
+            }
         }
     }
     
     private func startTimer() {
         stopTimer()
+        
+        self.totalDistancee = 0.0
+            self.elapsedTime = 1.0 
         
         timer = Timer.scheduledTimer(withTimeInterval: 1, repeats: true) { _ in
             self.elapsedTime += 1
@@ -140,8 +198,12 @@ class RunViewModel: NSObject, ObservableObject, CLLocationManagerDelegate {
     }
     
     private func updateSpeed() {
+        
+        print("IM HERE NOW")
         guard totalDistancee > 0, elapsedTime > 0 else {
             self.speed = "0:00"
+            print("Guard hit - Total distance or elapsed time is 0")  // Lägg till print för att förstå varför guard träffas
+
             return
         }
         
@@ -149,6 +211,10 @@ class RunViewModel: NSObject, ObservableObject, CLLocationManagerDelegate {
         let minutes = Int(paceInSeconds) / 60
         let seconds = Int(paceInSeconds) % 60
         self.speed = String(format: "%d:%02d", minutes, seconds)
+        
+        print("Elapsed time: \(elapsedTime) sekunder")
+            print("Total distans: \(totalDistancee) meter")
+            print("Uppdaterat tempo: \(self.speed)")
     }
     
 }

@@ -105,13 +105,14 @@ struct RunningStatView: View {
             .background(Color(.systemGray6).ignoresSafeArea())
             
             // Kartvy
-            MapView(viewModel: RunViewModel())
+            CustomMapView(routeCoordinates: $viewModel.routeCoordinates, region: $viewModel.region)
             .edgesIgnoringSafeArea(.all)
         }
         .tabViewStyle(PageTabViewStyle(indexDisplayMode: .always))
         .navigationBarBackButtonHidden(true)
         .onAppear {
             viewModel.startRun()
+            viewModel.simulateMovement() // För att testa distanslogiken
         }
         .onDisappear {
             viewModel.stopRun()
