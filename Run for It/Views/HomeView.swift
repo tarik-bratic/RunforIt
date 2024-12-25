@@ -22,7 +22,9 @@ struct HomeView: View {
                     .frame(maxWidth: .infinity)
                     .background(Color.blue)
                 
-                CustomMapView(routeCoordinates: $viewModel.routeCoordinates, region: $viewModel.region)
+                CustomMapView(
+                    routeCoordinates: $viewModel.routeCoordinates,
+                    region: $viewModel.region)
                 .frame(height: 500)
                 .cornerRadius(10)
                 .padding()

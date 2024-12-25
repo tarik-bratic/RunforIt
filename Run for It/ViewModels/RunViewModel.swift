@@ -34,22 +34,6 @@ class RunViewModel: NSObject, ObservableObject, CLLocationManagerDelegate {
         configureLocationManager()
     }
     
-    func simulateMovement() {
-        let testCoordinates = [
-            CLLocationCoordinate2D(latitude: 59.27158, longitude: 17.98855),
-                    CLLocationCoordinate2D(latitude: 59.27200, longitude: 17.98890),
-                    CLLocationCoordinate2D(latitude: 59.27250, longitude: 17.98920),
-                    CLLocationCoordinate2D(latitude: 59.27300, longitude: 17.98950),
-                    CLLocationCoordinate2D(latitude: 59.27350, longitude: 17.98980)
-        ]
-        
-        for coordinate in testCoordinates {
-            let location = CLLocation(latitude: coordinate.latitude, longitude: coordinate.longitude)
-            updateLocation(location)
-        }
-    }
-
-    
     private func configureLocationManager() {
         locationManager = CLLocationManager()
         locationManager?.delegate = self
@@ -154,9 +138,6 @@ class RunViewModel: NSObject, ObservableObject, CLLocationManagerDelegate {
                 let lastLocation = CLLocation(latitude: lastCoordinates.latitude, longitude: lastCoordinates.longitude)
                 let distanceDelta = location.distance(from: lastLocation)
                 
-                print("Avstånd från senaste punkt: \(distanceDelta) meter") // Debugutskrift
-
-                
                 if distanceDelta > 1 {
                     self.totalDistancee += distanceDelta
                     self.distance = String(format: "%.2f km", self.totalDistancee / 1000)
@@ -178,7 +159,7 @@ class RunViewModel: NSObject, ObservableObject, CLLocationManagerDelegate {
         stopTimer()
         
         self.totalDistancee = 0.0
-            self.elapsedTime = 1.0 
+        self.elapsedTime = 1.0
         
         timer = Timer.scheduledTimer(withTimeInterval: 1, repeats: true) { _ in
             self.elapsedTime += 1
@@ -202,8 +183,6 @@ class RunViewModel: NSObject, ObservableObject, CLLocationManagerDelegate {
         print("IM HERE NOW")
         guard totalDistancee > 0, elapsedTime > 0 else {
             self.speed = "0:00"
-            print("Guard hit - Total distance or elapsed time is 0")  // Lägg till print för att förstå varför guard träffas
-
             return
         }
         

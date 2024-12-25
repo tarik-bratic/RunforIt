@@ -42,10 +42,8 @@ struct CustomMapView: UIViewRepresentable {
     }
 
     func updateUIView(_ mapView: MKMapView, context: Context) {
-        // Update map region
         mapView.setRegion(region, animated: true)
 
-        // Clear existing overlays and draw the route
         mapView.removeOverlays(mapView.overlays)
         let polyline = MKPolyline(coordinates: routeCoordinates, count: routeCoordinates.count)
         mapView.addOverlay(polyline)

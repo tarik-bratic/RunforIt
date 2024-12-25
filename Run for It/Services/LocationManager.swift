@@ -22,7 +22,6 @@ class LocationManager: NSObject, ObservableObject, CLLocationManagerDelegate {
     
     func startTracking() {
         routeCoordinates = []
-        //self.onUpdate = onUpdate
         locationManager.startUpdatingLocation()
     }
     
