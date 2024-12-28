@@ -10,6 +10,7 @@ import Combine
 import CoreLocation
 import MapKit
 
+@MainActor
 class RunViewModel: NSObject, ObservableObject {
     @Published var distance: String = "0.00" // distance in km
     @Published var speed: String = "0:00" // tempo in min/km
@@ -31,6 +32,7 @@ class RunViewModel: NSObject, ObservableObject {
     private var totalDistance: Double = 0.0
     private var lastLocation: CLLocation?
     private var isPaused = false
+    
     override init() {
         super.init()
         setupLocationManager()
@@ -79,9 +81,11 @@ class RunViewModel: NSObject, ObservableObject {
     private func startTimer() {
         stopTimer()
         timer = Timer.scheduledTimer(withTimeInterval: 1, repeats: true) { _ in
-            self.elapsedTime += 1
-            self.updateDuration()
-            self.updateAverageSpeed()
+            Task { @MainActor in
+                self.elapsedTime += 1
+                self.updateDuration()
+                self.updateAverageSpeed()
+            }
         }
     }
     

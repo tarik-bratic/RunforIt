@@ -23,9 +23,22 @@
 		AF9109DE2D203BBE00E1AD5A /* Foundation.framework */ = {isa = PBXFileReference; lastKnownFileType = wrapper.framework; name = Foundation.framework; path = System/Library/Frameworks/Foundation.framework; sourceTree = SDKROOT; };
 /* End PBXFileReference section */
 
+/* Begin PBXFileSystemSynchronizedBuildFileExceptionSet section */
+		AF099C902D206F9C0060EE79 /* Exceptions for "Run for It" folder in "Run for It" target */ = {
+			isa = PBXFileSystemSynchronizedBuildFileExceptionSet;
+			membershipExceptions = (
+				"Run-for-It-Info.plist",
+			);
+			target = AF10DA5D2D09C59700CB1847 /* Run for It */;
+		};
+/* End PBXFileSystemSynchronizedBuildFileExceptionSet section */
+
 /* Begin PBXFileSystemSynchronizedRootGroup section */
 		AF10DA602D09C59700CB1847 /* Run for It */ = {
 			isa = PBXFileSystemSynchronizedRootGroup;
+			exceptions = (
+				AF099C902D206F9C0060EE79 /* Exceptions for "Run for It" folder in "Run for It" target */,
+			);
 			path = "Run for It";
 			sourceTree = "<group>";
 		};
@@ -286,6 +299,7 @@
 				DEVELOPMENT_TEAM = 387RFBDYXM;
 				ENABLE_PREVIEWS = YES;
 				GENERATE_INFOPLIST_FILE = YES;
+				INFOPLIST_FILE = "Run-for-It-Info.plist";
 				INFOPLIST_KEY_LSApplicationCategoryType = "public.app-category.healthcare-fitness";
 				INFOPLIST_KEY_NSLocationWhenInUseUsageDescription = "This app needs your location to show it on the map.";
 				INFOPLIST_KEY_UIApplicationSceneManifest_Generation = YES;
@@ -302,7 +316,7 @@
 				PRODUCT_BUNDLE_IDENTIFIER = "name.tarikbratic.Run-for-It";
 				PRODUCT_NAME = "$(TARGET_NAME)";
 				SWIFT_EMIT_LOC_STRINGS = YES;
-				SWIFT_VERSION = 5.0;
+				SWIFT_VERSION = 6.0;
 				TARGETED_DEVICE_FAMILY = 1;
 			};
 			name = Debug;
@@ -318,6 +332,7 @@
 				DEVELOPMENT_TEAM = 387RFBDYXM;
 				ENABLE_PREVIEWS = YES;
 				GENERATE_INFOPLIST_FILE = YES;
+				INFOPLIST_FILE = "Run-for-It-Info.plist";
 				INFOPLIST_KEY_LSApplicationCategoryType = "public.app-category.healthcare-fitness";
 				INFOPLIST_KEY_NSLocationWhenInUseUsageDescription = "This app needs your location to show it on the map.";
 				INFOPLIST_KEY_UIApplicationSceneManifest_Generation = YES;
@@ -334,7 +349,7 @@
 				PRODUCT_BUNDLE_IDENTIFIER = "name.tarikbratic.Run-for-It";
 				PRODUCT_NAME = "$(TARGET_NAME)";
 				SWIFT_EMIT_LOC_STRINGS = YES;
-				SWIFT_VERSION = 5.0;
+				SWIFT_VERSION = 6.0;
 				TARGETED_DEVICE_FAMILY = 1;
 			};
 			name = Release;
