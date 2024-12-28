@@ -9,9 +9,10 @@ import Foundation
 import CoreLocation
 
 class LocationManager: NSObject, ObservableObject, CLLocationManagerDelegate {
-    private let locationManager = CLLocationManager()
-    @Published var routeCoordinates: [CLLocationCoordinate2D] = []
     var onLocationUpdate: ((CLLocation) -> Void)?
+    private let locationManager = CLLocationManager()
+    
+    @Published var routeCoordinates: [CLLocationCoordinate2D] = []
     
     override init() {
         super.init()
@@ -31,10 +32,9 @@ class LocationManager: NSObject, ObservableObject, CLLocationManagerDelegate {
     
     func locationManager(_ manager: CLLocationManager, didUpdateLocations locations: [CLLocation]) {
         guard let newLocation = locations.last else { return }
-        onLocationUpdate?(newLocation)
-        
         DispatchQueue.main.async {
             self.routeCoordinates.append(newLocation.coordinate)
         }
+        onLocationUpdate?(newLocation)
     }
 }

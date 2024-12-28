@@ -9,47 +9,34 @@ import SwiftUI
 
 struct HomeView: View {
     @StateObject var viewModel = RunViewModel()
-    @State private var showRunningStats = false
+    
+    @State private var showRunView = false
     
     var body: some View {
-        TabView {
-            VStack {
+        TabView() {
+            VStack(spacing: 150) {
                 Text("Run for It")
-                    .font(.largeTitle)
-                    .fontWeight(.bold)
-                    .foregroundColor(.white)
-                    .padding()
-                    .frame(maxWidth: .infinity)
-                    .background(Color.blue)
-                
-                CustomMapView(
-                    routeCoordinates: $viewModel.routeCoordinates,
-                    region: $viewModel.region)
-                .frame(height: 500)
-                .cornerRadius(10)
-                .padding()
+                    .font(.system(size: 56, weight: .bold))
+                    .frame(width: 110, height: 300)
+                    .italic()
                 
                 Button(action: {
-                    showRunningStats = true
+                    showRunView = true
                     viewModel.startRun()
                 }) {
-                    Text("Start")
-                        .font(.headline)
-                        .foregroundColor(.white)
-                        .frame(width: 350, height: 50)
-                        .background(Color.green)
-                        .cornerRadius(50)
-                        .shadow(radius: 5)
+                    RoundedRectangle(cornerRadius: 30)
+                        .overlay(
+                            Text("Start Run")
+                                .foregroundColor(.white)
+                        )
+                        .frame(width: 200, height: 50)
                 }
-                .padding(.top, 20)
-                .fullScreenCover(isPresented: $showRunningStats) {
+                .fullScreenCover(isPresented: $showRunView) {
                     RunningStatView(viewModel: viewModel)
                 }
-                
-                Spacer()
             }
             .tabItem {
-                Label("Start", systemImage: "play.circle")
+                Label("Run", systemImage: "play.circle")
             }
             
             HistoryView()
@@ -57,7 +44,7 @@ struct HomeView: View {
                     Label("History", systemImage: "clock")
                 }
         }
-        .background(Color(.systemGray6).ignoresSafeArea())
+        .ignoresSafeArea()
     }
 }
 

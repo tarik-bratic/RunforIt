@@ -9,115 +9,123 @@ import SwiftUI
 
 struct RunningStatView: View {
     @ObservedObject var viewModel = RunViewModel()
-    @State private var isPaused = false
+    
     @Environment(\.presentationMode) var presentationMode
     
+    @State private var isPaused = false
+    @State private var selectedTab: Int = 1
+        
     var body: some View {
-        TabView {
-            VStack(spacing: 30) {
-                //Tid
-                Text(viewModel.duration)
-                    .font(.system(size: 48, weight: .bold, design: .monospaced))
-                    .padding(.top, 40)
+        TabView(selection: $selectedTab) {
+            ZStack {
+                // Map / Trail View
+                CustomMapView(
+                    routeCoordinates: $viewModel.routeCoordinates,
+                    region: $viewModel.region
+                )
                 
-                //Kilometer
-                Text(viewModel.distance)
-                    .font(.system(size: 48, weight: .bold, design: .monospaced))
-                
-                // Temp
-                HStack {
-                    // Aktuell temp
-                    VStack {
-                        Text("Aktuellt temp")
-                            .font(.headline)
+                // Slider Container
+                RoundedRectangle(cornerRadius: 30)
+                    .fill(Color(white: 1, opacity: 0.5))
+                    .overlay(
+                        Text("slide to  return")
+                            .font(.system(size: 24, weight: .bold))
                             .foregroundColor(.gray)
+                    )
+                    .shadow(radius: 10)
+                    .offset(x: 0, y: 320)
+                    .frame(width: 350, height: 75)
+            }
+            .ignoresSafeArea()
+            .tag(0)
+            
+            VStack() {
+                // Duration Container
+                VStack(spacing: 5) {
+                    Text(viewModel.duration)
+                        .font(.system(size: 48, weight: .bold))
+                    Text("TID")
+                        .font(.title2)
+                        .foregroundColor(.gray)
+                }
+                .frame(maxWidth: .infinity, maxHeight: 150)
+                
+                Divider()
+                
+                // Distance Container
+                VStack(spacing: 5) {
+                    Text(viewModel.distance)
+                        .font(.system(size: 58, weight: .bold))
+                    Text("KILOMETER")
+                        .font(.title2)
+                        .foregroundColor(.gray)
+                }
+                .frame(maxWidth: .infinity, maxHeight: 175)
+                
+                Divider()
+                
+                // Tempo Container
+                HStack {
+                    // Current Temp Container
+                    VStack(spacing: 10) {
                         Text(viewModel.speed)
-                            .font(.title2)
-                            .fontWeight(.bold)
+                            .font(.system(size: 32, weight: .bold))
+                        Text("AKTL. TEMPO")
+                            .font(.title3)
+                            .foregroundColor(.gray)
                     }
-                    .frame(maxWidth: .infinity)
+                    .frame(maxWidth: 175, maxHeight: .infinity)
                     
                     Divider()
                     
-                    // Medel
-                    VStack {
-                        Text("Medeltempo")
-                            .font(.headline)
+                    // Avrage Tempo Container
+                    VStack(spacing: 10) {
+                        Text(viewModel.avrageSpeed)
+                            .font(.system(size: 32, weight: .bold))
+                        Text("MED. TEMPO")
+                            .font(.title3)
                             .foregroundColor(.gray)
-                        Text("0:00")
-                            .font(.title2)
-                            .fontWeight(.bold)
                     }
-                    .frame(maxWidth: .infinity)
+                    .frame(maxWidth: 175, maxHeight: .infinity)
                 }
-                .frame(height: 80)
-                .padding(.horizontal, 20)
+                .frame(maxWidth: .infinity, maxHeight: 125)
                 
-                Spacer()
-                
-                // Fortsätt eller stop
-                if isPaused {
-                    HStack(spacing: 20) {
-                        // Fortsättt
-                        Button(action: {
-                            isPaused = false
-                            viewModel.startRun()
-                        }) {
-                            Text("Fortsätt")
-                                .font(.headline)
-                                .foregroundColor(.blue)
-                                .frame(width: 120, height: 50)
-                                .background(Color.green)
-                                .cornerRadius(10)
-                        }
-                        
-                        // Stopp
-                        Button(action: {
-                            viewModel.stopRun()
-                            presentationMode.wrappedValue.dismiss()
-                        }) {
-                            Text("Stopp")
-                                .font(.headline)
-                                .foregroundColor(.white)
-                                .frame(width: 120, height: 50)
-                                .background(Color.red)
-                                .cornerRadius(10)
-                        }
-                    }
-                } else {
-                    // Paus
+                // Button Container
+                HStack(spacing: 30) {
+                    // Pause / Resume Button
                     Button(action: {
-                        isPaused = true
-                        viewModel.pauseRun()
+                        isPaused.toggle()
+                        
+                        if isPaused {
+                            viewModel.pauseRun()
+                        } else {
+                            viewModel.startRun()
+                        }
                     }) {
-                        Text("Paus")
-                            .font(.headline)
-                            .foregroundColor(.white)
-                            .frame(width: 120, height: 50)
-                            .background(Color.yellow)
-                            .cornerRadius(10)
+                        Image(systemName: isPaused ? "play.circle": "pause.circle.fill")
+                            .foregroundStyle(.yellow)
+                            .font(.system(size: 72))
+                            .symbolRenderingMode(.hierarchical)
+                            .contentTransition(.symbolEffect(.replace.magic(fallback: .downUp.wholeSymbol), options: .nonRepeating))
+                    }
+                    
+                    // Stop Button
+                    Button(action: {
+                        viewModel.stopRun()
+                        presentationMode.wrappedValue.dismiss()
+                    }) {
+                        Image(systemName: "stop.fill")
+                            .foregroundStyle(.red)
+                            .font(.system(size: 72))
                     }
                 }
-                
-                Spacer()
+                .frame(maxWidth: .infinity, maxHeight: 125)
             }
-            .padding()
-            .background(Color(.systemGray6).ignoresSafeArea())
-            
-            // Kartvy
-            CustomMapView(
-                routeCoordinates: $viewModel.routeCoordinates,
-                region: $viewModel.region)
-            .edgesIgnoringSafeArea(.all)
+            .ignoresSafeArea()
+            .tag(1)
         }
-        .tabViewStyle(PageTabViewStyle(indexDisplayMode: .always))
-        .navigationBarBackButtonHidden(true)
-        .onAppear {
-            viewModel.startRun()
-        }
-        .onDisappear {
-            viewModel.stopRun()
-        }
+        .ignoresSafeArea()
+        .tabViewStyle( PageTabViewStyle() )
     }
 }
 
