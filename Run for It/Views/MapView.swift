@@ -1,5 +1,5 @@
 //
-//  CustomMapView.swift
+//  MapView.swift
 //  Run for It
 //
 //  Created by Tarik Bratic on 2024-12-11.
@@ -8,14 +8,14 @@
 import SwiftUI
 import MapKit
 
-struct CustomMapView: UIViewRepresentable {
+struct MapView: UIViewRepresentable {
     @Binding var routeCoordinates: [CLLocationCoordinate2D]
     @Binding var region: MKCoordinateRegion
 
     class Coordinator: NSObject, MKMapViewDelegate {
-        var parent: CustomMapView
+        var parent: MapView
 
-        init(parent: CustomMapView) {
+        init(parent: MapView) {
             self.parent = parent
         }
 
@@ -28,6 +28,7 @@ struct CustomMapView: UIViewRepresentable {
             }
             return MKOverlayRenderer(overlay: overlay)
         }
+
     }
 
     func makeCoordinator() -> Coordinator {
@@ -42,10 +43,23 @@ struct CustomMapView: UIViewRepresentable {
     }
 
     func updateUIView(_ mapView: MKMapView, context: Context) {
-        mapView.setRegion(region, animated: true)
+        DispatchQueue.main.async {
+            mapView.setRegion(region, animated: true)
+            
+            // Remove overlays safely
+            mapView.removeOverlays(mapView.overlays)
+            
+            // Avoid creating a polyline with less than 2 points
+            guard self.routeCoordinates.count > 1 else { return }
 
-        mapView.removeOverlays(mapView.overlays)
-        let polyline = MKPolyline(coordinates: routeCoordinates, count: routeCoordinates.count)
-        mapView.addOverlay(polyline)
+            // Add polyline overlay
+            let polyline = MKPolyline(coordinates: routeCoordinates, count: routeCoordinates.count)
+            mapView.addOverlay(polyline)
+        }
+    }
+    
+    func dismantleUIView(_ mapView: MKMapView, coordinator: Coordinator) {
+        // Unset the delegate to prevent memory leaks
+        mapView.delegate = nil
     }
 }

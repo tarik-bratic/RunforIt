@@ -1,5 +1,5 @@
 //
-//  RunningStatView.swift
+//  RunView.swift
 //  Run for It
 //
 //  Created by Tarik Bratic on 2024-12-14.
@@ -7,7 +7,7 @@
 
 import SwiftUI
 
-struct RunningStatView: View {
+struct RunView: View {
     @ObservedObject var viewModel = RunViewModel()
     
     @Environment(\.presentationMode) var presentationMode
@@ -17,28 +17,29 @@ struct RunningStatView: View {
         
     var body: some View {
         TabView(selection: $selectedTab) {
+            // Map Container
             ZStack {
                 // Map / Trail View
-                CustomMapView(
+                MapView(
                     routeCoordinates: $viewModel.routeCoordinates,
                     region: $viewModel.region
                 )
                 
                 // Slider Container
                 RoundedRectangle(cornerRadius: 30)
-                    .fill(Color(white: 1, opacity: 0.5))
+                    .fill(Color(white: 1, opacity: 0.4))
                     .overlay(
-                        Text("slide to  return")
+                        Text("svep tillbaka")
                             .font(.system(size: 24, weight: .bold))
-                            .foregroundColor(.gray)
+                            .foregroundColor(.white)
                     )
-                    .shadow(radius: 10)
                     .offset(x: 0, y: 320)
-                    .frame(width: 350, height: 75)
+                    .frame(width: 350, height: 65)
             }
             .ignoresSafeArea()
             .tag(0)
             
+            // Stat Container
             VStack() {
                 // Duration Container
                 VStack(spacing: 5) {
@@ -120,6 +121,14 @@ struct RunningStatView: View {
                     }
                 }
                 .frame(maxWidth: .infinity, maxHeight: 125)
+                
+                // Text Container
+                ZStack {
+                    Text("svep till karta")
+                        .font(.title3)
+                        .fontWeight(.bold)
+                        .opacity(0.3)
+                }
             }
             .ignoresSafeArea()
             .tag(1)
@@ -130,5 +139,5 @@ struct RunningStatView: View {
 }
 
 #Preview {
-    RunningStatView()
+    RunView()
 }

@@ -32,7 +32,7 @@ struct HomeView: View {
                         .frame(width: 200, height: 50)
                 }
                 .fullScreenCover(isPresented: $showRunView) {
-                    RunningStatView(viewModel: viewModel)
+                    RunView(viewModel: viewModel)
                 }
             }
             .tabItem {
