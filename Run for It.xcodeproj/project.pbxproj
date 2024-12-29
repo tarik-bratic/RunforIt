@@ -12,6 +12,7 @@
 		AF9109E42D20504700E1AD5A /* SwiftUI.framework in Frameworks */ = {isa = PBXBuildFile; fileRef = AF9109D62D203B8500E1AD5A /* SwiftUI.framework */; };
 		AF9109E52D20505100E1AD5A /* Foundation.framework in Frameworks */ = {isa = PBXBuildFile; fileRef = AF9109DE2D203BBE00E1AD5A /* Foundation.framework */; };
 		AF9109E62D20505C00E1AD5A /* Combine.framework in Frameworks */ = {isa = PBXBuildFile; fileRef = AF9109DA2D203B9C00E1AD5A /* Combine.framework */; };
+		AFD8118B2D215A9000078D2F /* UIKit.framework in Frameworks */ = {isa = PBXBuildFile; fileRef = AFD8118A2D215A9000078D2F /* UIKit.framework */; };
 /* End PBXBuildFile section */
 
 /* Begin PBXFileReference section */
@@ -21,24 +22,12 @@
 		AF9109D62D203B8500E1AD5A /* SwiftUI.framework */ = {isa = PBXFileReference; lastKnownFileType = wrapper.framework; name = SwiftUI.framework; path = System/Library/Frameworks/SwiftUI.framework; sourceTree = SDKROOT; };
 		AF9109DA2D203B9C00E1AD5A /* Combine.framework */ = {isa = PBXFileReference; lastKnownFileType = wrapper.framework; name = Combine.framework; path = System/Library/Frameworks/Combine.framework; sourceTree = SDKROOT; };
 		AF9109DE2D203BBE00E1AD5A /* Foundation.framework */ = {isa = PBXFileReference; lastKnownFileType = wrapper.framework; name = Foundation.framework; path = System/Library/Frameworks/Foundation.framework; sourceTree = SDKROOT; };
+		AFD8118A2D215A9000078D2F /* UIKit.framework */ = {isa = PBXFileReference; lastKnownFileType = wrapper.framework; name = UIKit.framework; path = System/Library/Frameworks/UIKit.framework; sourceTree = SDKROOT; };
 /* End PBXFileReference section */
-
-/* Begin PBXFileSystemSynchronizedBuildFileExceptionSet section */
-		AF099C902D206F9C0060EE79 /* Exceptions for "Run for It" folder in "Run for It" target */ = {
-			isa = PBXFileSystemSynchronizedBuildFileExceptionSet;
-			membershipExceptions = (
-				"Run-for-It-Info.plist",
-			);
-			target = AF10DA5D2D09C59700CB1847 /* Run for It */;
-		};
-/* End PBXFileSystemSynchronizedBuildFileExceptionSet section */
 
 /* Begin PBXFileSystemSynchronizedRootGroup section */
 		AF10DA602D09C59700CB1847 /* Run for It */ = {
 			isa = PBXFileSystemSynchronizedRootGroup;
-			exceptions = (
-				AF099C902D206F9C0060EE79 /* Exceptions for "Run for It" folder in "Run for It" target */,
-			);
 			path = "Run for It";
 			sourceTree = "<group>";
 		};
@@ -50,6 +39,7 @@
 			buildActionMask = 2147483647;
 			files = (
 				AF9109E62D20505C00E1AD5A /* Combine.framework in Frameworks */,
+				AFD8118B2D215A9000078D2F /* UIKit.framework in Frameworks */,
 				AF9109E32D20504100E1AD5A /* CoreLocation.framework in Frameworks */,
 				AF9109E42D20504700E1AD5A /* SwiftUI.framework in Frameworks */,
 				AF9109E22D20503A00E1AD5A /* MapKit.framework in Frameworks */,
@@ -80,6 +70,7 @@
 		AF9109CC2D203B5C00E1AD5A /* Frameworks */ = {
 			isa = PBXGroup;
 			children = (
+				AFD8118A2D215A9000078D2F /* UIKit.framework */,
 				AF9109DE2D203BBE00E1AD5A /* Foundation.framework */,
 				AF9109DA2D203B9C00E1AD5A /* Combine.framework */,
 				AF9109D62D203B8500E1AD5A /* SwiftUI.framework */,

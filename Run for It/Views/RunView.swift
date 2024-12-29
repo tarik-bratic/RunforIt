@@ -6,14 +6,16 @@
 //
 
 import SwiftUI
+import MapKit
 
 struct RunView: View {
     @ObservedObject var viewModel = RunViewModel()
-    
     @Environment(\.presentationMode) var presentationMode
-    
+        
     @State private var isPaused = false
     @State private var selectedTab: Int = 1
+    
+    @State private var mapView: MKMapView? = nil
         
     var body: some View {
         TabView(selection: $selectedTab) {
@@ -22,16 +24,20 @@ struct RunView: View {
                 // Map / Trail View
                 MapView(
                     routeCoordinates: $viewModel.routeCoordinates,
-                    region: $viewModel.region
+                    region: $viewModel.region,
+                    onMapViewCreated: { map in
+                        self.mapView = map
+                    }
                 )
                 
                 // Slider Container
                 RoundedRectangle(cornerRadius: 30)
                     .fill(Color(white: 1, opacity: 0.4))
                     .overlay(
-                        Text("svep tillbaka")
+                        Text("swipe left to return")
                             .font(.system(size: 24, weight: .bold))
                             .foregroundColor(.white)
+                            .opacity(0.5)
                     )
                     .offset(x: 0, y: 320)
                     .frame(width: 350, height: 65)
@@ -45,7 +51,7 @@ struct RunView: View {
                 VStack(spacing: 5) {
                     Text(viewModel.duration)
                         .font(.system(size: 48, weight: .bold))
-                    Text("TID")
+                    Text("TIME")
                         .font(.title2)
                         .foregroundColor(.gray)
                 }
@@ -57,7 +63,7 @@ struct RunView: View {
                 VStack(spacing: 5) {
                     Text(viewModel.distance)
                         .font(.system(size: 58, weight: .bold))
-                    Text("KILOMETER")
+                    Text("KILOMETERS")
                         .font(.title2)
                         .foregroundColor(.gray)
                 }
@@ -71,7 +77,7 @@ struct RunView: View {
                     VStack(spacing: 10) {
                         Text(viewModel.speed)
                             .font(.system(size: 32, weight: .bold))
-                        Text("AKTL. TEMPO")
+                        Text("CURR. TEMPO")
                             .font(.title3)
                             .foregroundColor(.gray)
                     }
@@ -83,7 +89,7 @@ struct RunView: View {
                     VStack(spacing: 10) {
                         Text(viewModel.avrageSpeed)
                             .font(.system(size: 32, weight: .bold))
-                        Text("MED. TEMPO")
+                        Text("AVG. TEMPO")
                             .font(.title3)
                             .foregroundColor(.gray)
                     }
@@ -112,7 +118,9 @@ struct RunView: View {
                     
                     // Stop Button
                     Button(action: {
-                        viewModel.stopRun()
+                        if let map = mapView {
+                            viewModel.stopRun(mapView: map)
+                        }
                         presentationMode.wrappedValue.dismiss()
                     }) {
                         Image(systemName: "stop.fill")
@@ -124,7 +132,7 @@ struct RunView: View {
                 
                 // Text Container
                 ZStack {
-                    Text("svep till karta")
+                    Text("swipe right for map")
                         .font(.title3)
                         .fontWeight(.bold)
                         .opacity(0.3)

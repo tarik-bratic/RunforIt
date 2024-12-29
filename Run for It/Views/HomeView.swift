@@ -28,6 +28,7 @@ struct HomeView: View {
                         .overlay(
                             Text("Start Run")
                                 .foregroundColor(.white)
+                                .fontWeight(.bold)
                         )
                         .frame(width: 200, height: 50)
                 }
@@ -40,8 +41,9 @@ struct HomeView: View {
             }
             
             HistoryView()
+                .environmentObject(viewModel)
                 .tabItem {
-                    Label("History", systemImage: "clock")
+                    Label("Previously", systemImage: "clock")
                 }
         }
         .ignoresSafeArea()

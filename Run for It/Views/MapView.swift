@@ -11,6 +11,8 @@ import MapKit
 struct MapView: UIViewRepresentable {
     @Binding var routeCoordinates: [CLLocationCoordinate2D]
     @Binding var region: MKCoordinateRegion
+    
+    var onMapViewCreated: ((MKMapView) -> Void)?
 
     class Coordinator: NSObject, MKMapViewDelegate {
         var parent: MapView
@@ -39,6 +41,10 @@ struct MapView: UIViewRepresentable {
         let mapView = MKMapView()
         mapView.delegate = context.coordinator
         mapView.showsUserLocation = true
+        
+        // MKMapView Instance to the parent
+        onMapViewCreated?(mapView)
+        
         return mapView
     }
 

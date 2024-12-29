@@ -17,6 +17,8 @@ class RunViewModel: NSObject, ObservableObject {
     @Published var avrageSpeed: String = "0:00" // Avrage tempo in min/km
     @Published var duration: String = "00:00" // time in mm/ss
     
+    @Published var runHistory: [Run] = []
+    
     @Published var locationAccessDenied: Bool = false
     @Published var isFollowingLocation: Bool = true
     @Published var routeCoordinates: [CLLocationCoordinate2D] = []
@@ -55,10 +57,32 @@ class RunViewModel: NSObject, ObservableObject {
         }
     }
     
-    func stopRun() {
+    func stopRun(mapView: MKMapView) {
         stopTimer()
         isPaused = false
         locationManager.stopTracking()
+        
+        // Capture map screenshot
+        let renderer = UIGraphicsImageRenderer(size: mapView.bounds.size)
+        let screenshot = renderer.image { ctx in
+            mapView.drawHierarchy(in: mapView.bounds, afterScreenUpdates: true)
+        }
+        
+        // Create a new Run entry
+        let newRun = Run(
+            date: Date(),
+            distance: distance,
+            duration: duration,
+            averageSpeed: avrageSpeed,
+            screenshot: screenshot,
+            routeCoordinates: routeCoordinates
+        )
+        
+        // Save the run to history
+        runHistory.append(newRun)
+        
+        // Reset run data
+        resetRun()
     }
     
     private func resetRun() {
