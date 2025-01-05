@@ -13,56 +13,51 @@ struct HistoryDetailView: View {
     var body: some View {
         ScrollView {
             VStack(spacing: 30) {
-                // Duration Stat Container
-                VStack(spacing: 10) {
-                    Text("\(run.duration)")
-                        .font(.system(size: 48, weight: .bold))
-                        .textCase(.uppercase)
-                    Text("DURATION")
-                        .font(.title3)
-                        .foregroundColor(.gray)
-                }
+                // Duration Stat
+                StatsView(value: run.duration, label: "DURATION", fontSize: 48)
                 
                 Divider()
                 
-                // Distance / Speed Container
+                // Distance & Avg. Tempo
                 HStack(spacing: 20) {
                     // Distance
-                    VStack(spacing: 10) {
-                        Text("\(run.distance) km")
-                            .font(.system(size: 36, weight: .bold))
-                            .textCase(.uppercase)
-                        Text("DISTANCE")
-                            .font(.title3)
-                            .foregroundColor(.gray)
-                    }
-                    .frame(maxWidth: 175, maxHeight: .infinity)
+                    StatsView(value: run.distance, label: "DISTANCE", fontSize: 36)
+                    .frame(maxWidth: 175)
                     
                     Divider()
                     
                     // Avg Speed
-                    VStack(spacing: 10) {
-                        Text("\(run.averageSpeed)")
-                            .font(.system(size: 36, weight: .bold))
-                            .textCase(.uppercase)
-                        Text("AVG. TEMPO")
-                            .font(.title3)
-                            .foregroundColor(.gray)
-                    }
-                    .frame(maxWidth: 175, maxHeight: .infinity)
+                    StatsView(value: run.averageSpeed, label: "AVG. TEMPO", fontSize: 36)
+                    .frame(maxWidth: 175)
                 }
-                .frame(maxWidth: .infinity, maxHeight: 150)
+                .frame(maxHeight: 150)
                 
+                // Screenshot Image
                 Image(uiImage: run.screenshot)
                     .resizable()
                     .scaledToFit()
             }
-            .padding().padding(.top, 30)
+            .padding(.horizontal)
+            .padding(.top, 30)
         }
         .navigationTitle("Detailed View")
     }
 }
 
-//#Preview {
-//    HistoryDetailView(run: Run.sampleData())
-//}
+/// A reusable component for displaying stats
+struct StatsView: View {
+    let value: String
+    let label: String
+    let fontSize: CGFloat
+    
+    var body: some View {
+        VStack(spacing: 10) {
+            Text(value)
+                .font(.system(size: fontSize, weight: .bold))
+                .textCase(.uppercase)
+            Text(label)
+                .font(.title3)
+                .foregroundColor(.gray)
+        }
+    }
+}

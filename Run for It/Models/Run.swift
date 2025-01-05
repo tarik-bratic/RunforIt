@@ -17,16 +17,4 @@ struct Run: Identifiable {
     let averageSpeed: String
     let screenshot: UIImage
     let routeCoordinates: [CLLocationCoordinate2D]
-    
-//    static func sampleData() -> Run {
-//            let sampleScreenshot = UIImage(systemName: "star.fill") ?? UIImage() // Replace with an actual screenshot
-//            return Run(
-//                date: Date(),
-//                distance: "5.0",
-//                duration: "30 min",
-//                averageSpeed: "10 km/h",
-//                screenshot: sampleScreenshot,
-//                routeCoordinates: []
-//            )
-//        }
 }

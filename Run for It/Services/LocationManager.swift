@@ -8,63 +8,64 @@
 import Foundation
 import CoreLocation
 
-@MainActor
+/// LocationManager handles location updates and communicates them via a closure.
 class LocationManager: NSObject, ObservableObject {
-    var onLocationUpdate: ((CLLocation) -> Void)?
-    private let locationManager = CLLocationManager()
-    private let delegateProxy = CLLocationManagerDelegateProxy()
-    
+    // Array of route coordinates for tracking purposes
     @Published var routeCoordinates: [CLLocationCoordinate2D] = []
+    // CoreLocation manager instance
+    private let locationManager = CLLocationManager()
+    // Closure to notify when a location update occurs
+    var onLocationUpdate: ((CLLocation) -> Void)?
     
     override init() {
         super.init()
         setupLocationManager()
     }
     
+    /// Configures the location manager with desired settings
     private func setupLocationManager() {
-        locationManager.delegate = delegateProxy
-        delegateProxy.onLocationUpdate = { [weak self] location in
-            guard let self else { return }
-            self.routeCoordinates.append(location.coordinate)
-            self.onLocationUpdate?(location)
-        }
+        locationManager.delegate = self
         locationManager.desiredAccuracy = kCLLocationAccuracyBest
         locationManager.allowsBackgroundLocationUpdates = true
         locationManager.pausesLocationUpdatesAutomatically = false
-        locationManager.requestAlwaysAuthorization()
+        locationManager.requestAlwaysAuthorization() // Request location access
     }
     
+    /// Starts location tracking and clears previous route coordinates
     func startTracking() {
         routeCoordinates = []
         locationManager.startUpdatingLocation()
     }
     
+    /// Stops location tracking
     func stopTracking() {
         locationManager.stopUpdatingLocation()
     }
 }
 
-/// A proxy class to handle CLLocationManagerDelegate callbacks
-private class CLLocationManagerDelegateProxy: NSObject, CLLocationManagerDelegate {
-    var onLocationUpdate: ((CLLocation) -> Void)?
-    
+// MARK: - CLLocationManagerDelegate
+extension LocationManager: CLLocationManagerDelegate {
+    /// Handles location updates
     func locationManager(_ manager: CLLocationManager, didUpdateLocations locations: [CLLocation]) {
         guard let newLocation = locations.last else { return }
+        routeCoordinates.append(newLocation.coordinate)
         onLocationUpdate?(newLocation)
     }
     
+    /// Handles changes in location authorization
     func locationManagerDidChangeAuthorization(_ manager: CLLocationManager) {
         switch manager.authorizationStatus {
-        case .authorizedAlways:
-            print("Location access: Always authorized")
-        case .authorizedWhenInUse:
-            print("Location access: Authorized when in use")
+        case .authorizedAlways, .authorizedWhenInUse:
+            if let location = manager.location {
+                onLocationUpdate?(location)
+            }
         case .denied, .restricted:
-            print("Location access: Denied or restricted")
+            print("Location access: Denieed or restricted")
         case .notDetermined:
             print("Location access: Not determined")
         @unknown default:
             print("Location access: Unknown state")
         }
     }
+    
 }

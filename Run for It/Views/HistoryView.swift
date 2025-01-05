@@ -13,69 +13,79 @@ struct HistoryView: View {
     var body: some View {
         NavigationView {
             ScrollView {
-                LazyVStack {
+                LazyVStack(spacing: 15) {
                     ForEach(runViewModel.runHistory) { run in
                         NavigationLink(destination: HistoryDetailView(run: run)) {
-                            VStack(spacing: 10) {
-                                // Date Container
-                                HStack {
-                                    // Date
-                                    Text("\(run.date.formatted(date: .long, time: .omitted))")
-                                        .foregroundColor(.white)
-                                        .fontWeight(.bold)
-                                        .font(.system(size: 18))
-                                    
-                                    Spacer()
-                                    
-                                    // Time
-                                    Text("\(run.date.formatted(date: .omitted, time: .shortened))")
-                                        .foregroundColor(.white)
-                                }
-                                
-                                // Stat Container
-                                HStack(spacing: 20) {
-                                    Text("Duration: \(run.duration)")
-                                        .foregroundColor(.white)
-                                        .font(.system(size: 20))
-                                        .italic()
-                                    Text("Distance: \(run.distance)")
-                                        .foregroundColor(.white)
-                                        .font(.system(size: 20))
-                                        .italic()
-                                }
-                                
-                                // Text Container
-                                Text("(tap to view in detail)")
-                                    .foregroundColor(.white)
-                                    .opacity(0.2)
-                                    .italic()
-                            }
-                            .padding()
-                            .frame(maxWidth: .infinity, maxHeight: 115)
-                            .background(
-                                RoundedRectangle(cornerRadius: 15)
-                                    .fill(LinearGradient(
-                                        gradient: Gradient(colors: [Color.gray, Color.gray.opacity(0.5)]),
-                                        startPoint: .top,
-                                        endPoint: .bottom
-                                    ))
-                            )
+                            HistoryCard(run: run)
                         }
+                        .buttonStyle(PlainButtonStyle())
+                        .padding(.horizontal)
                     }
                     .padding(.bottom, 10)
                 }
-                .padding()
+                .padding(.top)
             }
             .navigationTitle("Previous Runs")
+            .navigationBarTitleDisplayMode(.inline)
         }
     }
 }
 
-//#Preview {
-//    HistoryView()
-//        .environmentObject({
-//            let viewModel = RunViewModel()
-//            viewModel.runHistory = Run.sampleData() // Add temporary data
-//            return viewModel
-//        }())
-//}
+/// A reuseable card view for displaying run history
+struct HistoryCard: View {
+    let run: Run
+    
+    var body: some View {
+        VStack(spacing: 10) {
+            // Date and time
+            HStack {
+                Text("\(run.date.formatted(date: .long, time: .omitted))")
+                    .foregroundColor(.white)
+                    .fontWeight(.bold)
+                    .font(.system(size: 18))
+                
+                Spacer()
+                
+                Text("\(run.date.formatted(date: .omitted, time: .shortened))")
+                    .foregroundColor(.white)
+            }
+            
+            // Duration and distance stats
+            HStack(spacing: 20) {
+                StatText(label: "Duration", value: run.duration)
+                StatText(label: "Distance", value: run.distance)
+            }
+            
+            // Instruction Text
+            Text("(tap to view in detail)")
+                .foregroundColor(.white)
+                .opacity(0.2)
+                .italic()
+        }
+        .padding()
+        .frame(maxHeight: 115)
+        .background(
+            RoundedRectangle(cornerRadius: 15)
+                .fill(
+                    LinearGradient(
+                        gradient: Gradient(colors: [Color.gray, Color.gray.opacity(0.5)]),
+                        startPoint: .top,
+                        endPoint: .bottom
+                    )
+                )
+        )
+    }
+}
+
+/// A reusable component for stat text
+struct StatText: View {
+    let label: String
+    let value: String
+    
+    var body: some View {
+        Text("\(label): \(value)")
+            .foregroundColor(.white)
+            .font(.system(size: 20))
+            .italic()
+    }
+}

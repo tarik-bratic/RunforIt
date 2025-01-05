@@ -10,53 +10,64 @@ import Combine
 import CoreLocation
 import MapKit
 
+/// ViewModel responsible for managing and tracking running sessions
 @MainActor
 class RunViewModel: NSObject, ObservableObject {
-    @Published var distance: String = "0.00" // distance in km
-    @Published var speed: String = "0:00" // tempo in min/km
-    @Published var avrageSpeed: String = "0:00" // Avrage tempo in min/km
-    @Published var duration: String = "00:00" // time in mm/ss
-    
-    @Published var runHistory: [Run] = []
-    
-    @Published var locationAccessDenied: Bool = false
-    @Published var isFollowingLocation: Bool = true
-    @Published var routeCoordinates: [CLLocationCoordinate2D] = []
+    // MARK: - Published Properties (UI Updates)
+    @Published var distance: String = "0.00" // Distance covered in kilometers
+    @Published var speed: String = "0:00" // Current pace (min/km)
+    @Published var averageSpeed: String = "0:00" // Average pace (min/km)
+    @Published var duration: String = "00:00" // Total duration (hh:mm:ss)
+    @Published var runHistory: [Run] = [] // Completed runs
+    @Published var locationAccessDenied: Bool = false // Location access status
+    @Published var isFollowingLocation: Bool = true // Follow location on map
+    @Published var routeCoordinates: [CLLocationCoordinate2D] = [] // Recorded route
     @Published var region: MKCoordinateRegion = MKCoordinateRegion(
         center: CLLocationCoordinate2D(latitude: 59.27158, longitude: 17.98855),
         span: MKCoordinateSpan(latitudeDelta: 0.01, longitudeDelta: 0.01)
     )
     
-    private let locationManager = LocationManager()
-    private var timer: Timer?
-    private var elapsedTime: TimeInterval = 0.0
-    private var lastLocationUpdateTime: TimeInterval?
-    private var totalDistance: Double = 0.0
-    private var lastLocation: CLLocation?
-    private var isPaused = false
+    // MARK: - Private Properties
+    private let locationManager = LocationManager() // Handles location updates
+    private var timer: Timer? // Tracks running duration
+    private var elapsedTime: TimeInterval = 0.0 // Total elapsed time
+    private var lastLocationUpdateTime: TimeInterval? // Time of the last location update
+    private var totalDistance: Double = 0.0 // Total distance covered in meters
+    private var lastLocation: CLLocation? // Last recorded location
+    private var isPaused = false // Paused state for the run
     
+    // MARK: - Initializer
     override init() {
         super.init()
         setupLocationManager()
     }
     
+    // MARK: - Public Methods
+    /// Starts or resumes a run
     func startRun() {
-        if !isPaused { resetRun() }
+        if !isPaused { resetRun() } // Reset if not resuming
         isPaused = false
+        
+        if let currentLocation = locationManager.routeCoordinates.last {
+            // Update map region to user's location
+            region = MKCoordinateRegion(
+                center: currentLocation,
+                span: MKCoordinateSpan(latitudeDelta: 0.01, longitudeDelta: 0.01))
+        }
+        
         startTimer()
         locationManager.startTracking()
     }
     
+    /// Pauses the run
     func pauseRun() {
         isPaused = true
         stopTimer()
         locationManager.stopTracking()
-        
-        DispatchQueue.main.async {
-            self.isFollowingLocation = false
-        }
+        isFollowingLocation = false
     }
     
+    /// Stops the run and saves it to history
     func stopRun(mapView: MKMapView) {
         stopTimer()
         isPaused = false
@@ -73,18 +84,16 @@ class RunViewModel: NSObject, ObservableObject {
             date: Date(),
             distance: distance,
             duration: duration,
-            averageSpeed: avrageSpeed,
+            averageSpeed: averageSpeed,
             screenshot: screenshot,
             routeCoordinates: routeCoordinates
         )
-        
-        // Save the run to history
-        runHistory.append(newRun)
-        
-        // Reset run data
+        saveRunToHistory(newRun)
         resetRun()
     }
     
+    // MARK: - Private Methods
+    /// Resets run data
     private func resetRun() {
         routeCoordinates = []
         totalDistance = 0.0
@@ -96,12 +105,20 @@ class RunViewModel: NSObject, ObservableObject {
         lastLocation = nil
     }
     
+    /// Adds a new run to history and sorts by date
+    private func saveRunToHistory(_ run: Run) {
+        runHistory.append(run)
+        runHistory.sort { $0.date > $1.date }
+    }
+    
+    /// Configures the location manager to handle location updates
     private func setupLocationManager() {
         locationManager.onLocationUpdate = { [weak self] location in
-            self?.updateLocation(location)
+            self?.handleLocationUpdate(location)
         }
     }
     
+    /// Starts a timer to update duration and average speed
     private func startTimer() {
         stopTimer()
         timer = Timer.scheduledTimer(withTimeInterval: 1, repeats: true) { _ in
@@ -113,41 +130,60 @@ class RunViewModel: NSObject, ObservableObject {
         }
     }
     
+    /// Stops the timer
     private func stopTimer() {
         timer?.invalidate()
         timer = nil
     }
     
-    private func updateLocation(_ location: CLLocation) {
-        DispatchQueue.main.async {
-            if let lastCoordinates = self.routeCoordinates.last {
-                let lastLocation = CLLocation(latitude: lastCoordinates.latitude, longitude: lastCoordinates.longitude)
-                let distanceDelta = location.distance(from: lastLocation)
-                
-                if distanceDelta > 1 {
-                    self.totalDistance += distanceDelta
-                    self.distance = String(format: "%.2f", self.totalDistance / 1000)
-                    self.updateCurrentSpeed(location, distanceDelta: distanceDelta)
-                }
-            }
-            
-            self.routeCoordinates.append(location.coordinate)
-            
-            if self.isFollowingLocation {
-                self.region = MKCoordinateRegion(
-                    center: location.coordinate,
-                    span: MKCoordinateSpan(latitudeDelta: 0.01, longitudeDelta: 0.01)
-                )
-            }
+    /// Handles updates to the user's location
+    private func handleLocationUpdate(_ location: CLLocation) {
+        guard let lastCoordinates = routeCoordinates.last else {
+            // First location update
+            routeCoordinates.append(location.coordinate)
+            region = MKCoordinateRegion(
+                center: location.coordinate,
+                span: MKCoordinateSpan(latitudeDelta: 0.01, longitudeDelta: 0.01)
+            )
+            return
+        }
+        
+        // Calculate distance delta and update total distance
+        let lastLocation = CLLocation(latitude: lastCoordinates.latitude, longitude: lastCoordinates.longitude)
+        let distanceDelta = location.distance(from: lastLocation)
+        if distanceDelta > 1 { // Avoid noise
+            totalDistance += distanceDelta
+            distance = String(format: "%.2f", totalDistance / 1000) // Convert to kilometers
+            updateCurrentSpeed(location, distanceDelta: distanceDelta)
+        }
+        
+        routeCoordinates.append(location.coordinate)
+        if isFollowingLocation {
+            region = MKCoordinateRegion(
+                center: location.coordinate,
+                span: MKCoordinateSpan(latitudeDelta: 0.01, longitudeDelta: 0.01)
+            )
         }
     }
     
+    /// Updates the total duration of the run
     private func updateDuration() {
-        let minutes = Int(elapsedTime) / 60
-        let seconds = Int(elapsedTime) % 60
-        self.duration = String(format: "%02d:%02d", minutes, seconds)
+        duration = formatTime(elapsedTime)
     }
     
+    /// Formats time intervals as 'hh:mm:ss' or 'mm:ss'
+    private func formatTime(_ time: TimeInterval) -> String {
+        let hours = Int(time) / 3600
+        let minutes = (Int(time) % 3600) / 60
+        let seconds = Int(time) % 60
+        
+        return hours > 0
+            ? String(format: "%02d:%02d:%02d", hours, minutes, seconds)
+            : String(format: "%02d:%02d", minutes, seconds)
+        
+    }
+    
+    /// Updates the current speed (pace)
     private func updateCurrentSpeed(_ location: CLLocation, distanceDelta: Double) {
         guard let lastUpdateTime = lastLocationUpdateTime else {
             lastLocationUpdateTime = elapsedTime
@@ -155,32 +191,24 @@ class RunViewModel: NSObject, ObservableObject {
             return
         }
         
-        // Calculate time difference since the last update
         let timeDelta = elapsedTime - lastUpdateTime
         guard timeDelta > 0 else { return }
         
-        // Current Speed (tempo) calculation
         let paceInSeconds = timeDelta / (distanceDelta / 1000)
-        let minutes = Int(paceInSeconds) / 60
-        let seconds = Int(paceInSeconds) % 60
-        self.speed = String(format: "%d:%02d", minutes, seconds)
-        
-        // Update for the next calculation
+        speed = formatTime(paceInSeconds)
         lastLocationUpdateTime = elapsedTime
         lastLocation = location
     }
     
+    /// Updates the average speed (pace)
     private func updateAverageSpeed() {
         guard totalDistance > 0, elapsedTime > 0 else {
-            self.avrageSpeed = "0:00"
+            averageSpeed = "0:00"
             return
         }
         
-        // Avrage Speed (tempo) calculation
         let avgPaceInSeconds = elapsedTime / (totalDistance / 1000)
-        let avgMinutes = Int(avgPaceInSeconds) / 60
-        let avgSeconds = Int(avgPaceInSeconds) % 60
-        self.avrageSpeed = String(format: "%d:%02d", avgMinutes, avgSeconds)
+        averageSpeed = formatTime(avgPaceInSeconds)
     }
 }
 
