@@ -70,9 +70,9 @@
 
 ## **Screenshots**
 
-| **Run View** | **History View** | **Detailed Run View** |
+| **Home View** | **Run View** | **Map View** |
 |--------------|------------------|-----------------------|
-| ![Run View](link-to-screenshot-1) | ![History View](link-to-screenshot-2) | ![Detailed View](link-to-screenshot-3) |
+| <img src="https://github.com/user-attachments/assets/590fa265-77fb-4fbe-94ad-1d840b1de1f2" width="200" /> | <img src="https://github.com/user-attachments/assets/43d57a3a-dea4-4972-96ea-d96cd0b6608e" width="200" /> | <img src="https://github.com/user-attachments/assets/f2a57200-c5a4-404c-a78a-109748b4f5de" width="200" /> |
 
 ---
 
